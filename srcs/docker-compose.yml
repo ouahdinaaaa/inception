@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    image: mariadb:v1
+    container_name: mariadb
+    networks:
+      - net_inception
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 20s
+      retries: 10
+
+
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    networks:
+      - net_inception
+    image: nginx:v1
+    restart: always
+    ports:
+      - 443:443
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html/wordpress
+    depends_on:
+      - wordpress
+    healthcheck:
+      test: 'curl -kfsSL https://localhost:443/status'
+      interval: 5s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+
+      
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    networks:
+      - net_inception
+    image: wordpress:v1
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html/wordpress
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+
+
+networks:
+  net_inception:
+  
+volumes:
+  mariadb:
+    name: mariadb
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/ayael-ou/data/mariadb
+  wordpress_data:
