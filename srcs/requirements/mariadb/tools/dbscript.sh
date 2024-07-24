@@ -4,15 +4,18 @@
 service mysql start;
 sleep 10;
 
-mysql -e "CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;"
-mysql -e "CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'wordpress.net_inception' IDENTIFIED BY '${SQL_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'wordpress.net_inception' WITH GRANT OPTION;"
 
-mysql -e "CREATE USER IF NOT EXISTS \`${ADMIN_USER}\`@'%' IDENTIFIED BY '${ADMIN_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON *.* TO \`${ADMIN_USER}\`@'%' WITH GRANT OPTION;"
+# CREATE USER #
+echo "CREATE USER 'ayael-ou'@'%' IDENTIFIED BY 'Natsume1639!';" | mysql
 
-mysql -u root -p${SQL_ROOT_PASSWORD} -e "FLUSH PRIVILEGES;"
-# mysqladmin -u root -p${SQL_ROOT_PASSWORD} -e "SHUTDOWN;"
+
+# PRIVILGES FOR ROOT AND USER FOR ALL IP ADRESS #
+echo "GRANT ALL PRIVILEGES ON *.* TO 'ayael-ou'@'%' IDENTIFIED BY 'Natsume1639!';" | mysql
+#echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$BDD_ROOT_PASSWORD';" | mysql
+echo "FLUSH PRIVILEGES;" | mysql
+
+# CREAT WORDPRESS DATABASE #
+echo "CREATE DATABASE net-inception;" | mysql
 mysqladmin -u root -proot shutdown
 
 
