@@ -11,7 +11,7 @@ logs:
 
 clean:
 	sudo docker container stop nginx mariadb wordpress
-	# sudo docker network rm net_inception
+	sudo docker network rm srcs_net_inception 
 
 fclean: clean
 	@sudo rm -rf /home/ayael-ou/data/mariadb/*
