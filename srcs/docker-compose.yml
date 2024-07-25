@@ -1,102 +1,72 @@
+
 services:
   mariadb:
-    image: mariadb
-    container_name: mariadb
     build: ./requirements/mariadb
+    image: mariadb:v1
+    container_name: mariadb
+    networks:
+      - net_inception
+    restart: always
+    env_file:
+      - .env
     volumes:
       - mariadb:/var/lib/mysql
-    networks:
-      - net_inception
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - 3306:3306
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 20s
-      retries: 10
+    # healthcheck:
+    #   test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+    #   interval: 5s
+    #   timeout: 20s
+    #   retries: 10
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    networks:
-      - net_inception
-
-  # wordpress:
-  #   image: wordpress
-  #   container_name: wordpress
-  #   build: ./requirements/wordpress
-  #   volumes:
-  #     - wordpress:/var/www/html/wordpress
-  #   expose:
-  #     - "9000"
-  #   networks:
-  #     - net_inception
-  #   restart: unless-stopped
-  #   env_file: 
-  #     - .env
-  #   depends_on:
-  #     -mariadb
-  #       condition: service_healthy
-
-  wordpress:
-   image: wordpress
-   container_name: wordpress
-   build:
-     context: ./requirements/wordpress
-     dockerfile: Dockerfile
-   volumes:
-     - wordpress:/var/www/html/wordpress
-   expose:
-     - "9000"
-   networks:
-     - net_inception
-   restart: unless-stopped
-   env_file: .env
-   depends_on:
-     - mariadb
 
   nginx:
-    image: nginx
-    container_name: nginx
     build: ./requirements/nginx
-    volumes:
-      - wordpress:/var/www/html/wordpress
-    #depends_on:
-    #  - wordpress
-    ports:
-      - 443:443
+    container_name: nginx
     networks:
       - net_inception
-    restart: unless-stopped
+    image: nginx:v1
+    restart: always
+    ports:
+      - 443:443
     env_file:
       - .env
+    volumes:
+      - wordpress_data:/var/www/html/wordpress
+    depends_on:
+      - wordpress
     healthcheck:
-      test: 'curl -kfsSL https://ayael-ou.42.fr/status'
+      test: 'curl -kfsSL https://localhost:443/status'
       interval: 5s
       timeout: 1s
       retries: 10
       start_period: 5s
 
-
-volumes:
-  mariadb:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/ayael-ou/data/mariadb
+      
   wordpress:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/ayael-ou/data/wordpress
+    build: ./requirements/wordpress
+    container_name: wordpress
+    networks:
+      - net_inception
+    image: wordpress:v1
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html/wordpress
+    # depends_on:
+    #   mariadb:
+    #     condition: service_healthy
+
+
 
 networks:
   net_inception:
-    name: net_inception
+  
+volumes:
+  mariadb:
+    name: mariadb
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/ayael-ou/data/mariadb
+  wordpress_data:
